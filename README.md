@@ -9,12 +9,11 @@
 - Django
 - Django REST Framework
 - Docker
-- Любые другие технологии, используемые в проекте
 
 ## Локальная установка и запуск
 
 ### Предварительные требования
-- Python 3.8 или выше
+- Python 3.10 или выше
 - pip (Python Package Installer)
 - Docker (для Docker-сборки)
 - Заданный OPENAI_API_KEY
