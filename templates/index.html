@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Checker</title>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #2a2d34;
+    color: white;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  .box {
+    background-color: #1f2229;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+      width: 100%;
+  }
+  .title {
+    font-size: 24px;
+    color: #4f5b66;
+    margin-bottom: 10px;
+  }
+  .content {
+    margin-bottom: 20px;
+    color: #a7adba;
+  }
+  .button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    background-color: #4f5b66;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  .button:hover {
+    background-color: #5e6a75;
+  }
+  textarea {
+      width: 100%;
+      height: 400px;
+      border: 0;
+      background-color: #a7adba;
+      color: #4f5b66;
+      padding-top: 5px;
+  }
+
+  .modal,
+  .result-modal {
+    display: none;
+    position: fixed;
+    z-index: 2;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .progress-container {
+    position: relative;
+    width: 50%;
+    height: 30px;
+    background-color: #ddd;
+    border-radius: 5px;
+    overflow: hidden; /* Добавлено для правильного отображения краев шкалы */
+  }
+
+  .progress-bar {
+    width: 0;
+    height: 100%;
+    background-color: #4caf50;
+    border-radius: 5px;
+    transition: width 0.05s;
+    position: relative; /* Относительное позиционирование для текста */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .progress-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    transition: color 0.1s;
+  }
+
+  .result-modal-content {
+    background: #333;
+    padding: 20px;
+    border-radius: 10px;
+    color: #fff;
+    width: 40%;
+    text-align: center;
+  height: 600px;
+  overflow-y: auto;
+  }
+
+  .result-modal-content h2 {
+    margin-top: 0;
+  }
+
+  .tips {
+    text-align: left;
+    margin-top: 20px;
+  }
+
+  .tips ul {
+    list-style: inside;
+  }
+
+  .close-button {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+  }
+  .close-button:hover,
+  .close-button:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>RESUME CHECKER</h1>
+  </div>
+    <div style="display: flex; justify-content: space-between; gap: 30px">
+
+  <div class="box">
+    <div class="title">Вакансия</div>
+    <div class="content">Текстовое описание вакансии</div>
+      <textarea id="vacancy-text"></textarea>
+
+  </div>
+  <div class="box">
+    <div class="title">Резюме</div>
+    <div class="content">Текстовое описание резюме</div>
+      <textarea id="resume-text"></textarea>
+  </div>
+    </div>
+        <button class="button" onclick="handleCheck()">Проверить</button>
+
+  <!-- Модальное окно с progress bar -->
+  <div class="modal" id="progressModal">
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar">
+        <span class="progress-text" id="progressText">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно с результатами -->
+  <div class="modal result-modal" id="resultModal" onclick="closeModal(event)">
+    <div class="result-modal-content">
+    <span class="close-button" onclick="closeResults()">&times;</span>
+    <h2>Ваше резюме было проанализировано</h2>
+    <div>
+      Общая схожесть вашего резюме к вакансии: <span id="matchScore">0.0</span>
+    </div>
+    <div class="results-section">
+      <h3>Сильные стороны:</h3>
+      <ul id="strengths"></ul>
+    </div>
+    <div class="results-section">
+      <h3>Слабые стороны:</h3>
+      <ul id="weaknesses"></ul>
+    </div>
+    <div class="results-section">
+      <h3>Предложение к переписыванию:</h3>
+      <ul id="rewrite_suggestions"></ul>
+    </div>
+    <div class="results-section">
+      <h3>Предложения к дополнительному изучению:</h3>
+      <ul id="learning_recommendations"></ul>
+    </div>
+    <div class="results-section">
+      <h3>Общие улучшения:</h3>
+      <p id="upgrades"></p>
+    </div>
+    <div class="results-section">
+      <h3>Предложения на подумать:</h3>
+      <ul id="reflection_points"></ul>
+    </div>
+  </div>
+  </div>
+
+
+  </div>
+</div>
+<script>
+
+    async function createEntity(url, data) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return await response.json();
+}
+
+async function getRelevancy(vacancyId, resumeId) {
+  const response = await fetch(`http://127.0.0.1:8000/api/relevancy/${resumeId}/${vacancyId}/`);
+  return await response.json();
+}
+
+async function handleCheck() {
+          const progressModal = document.getElementById("progressModal");
+  progressModal.style.display = "flex";
+
+        let vacancyTextArea = document.getElementById("vacancy-text")
+        let resumeTextArea = document.getElementById("resume-text")
+
+  showProgress(95); // Начинаем до 95%
+
+  try {
+      console.log(vacancyTextArea.innerText)
+    // Создать вакансию и резюме
+    const vacancy = await createEntity('http://127.0.0.1:8000/api/vacancies/', {
+        title: "Вакансия",
+        description: vacancyTextArea.value
+    });
+    const resume = await createEntity('http://127.0.0.1:8000/api/resumes/', {
+        name: "Резюме",
+        content: resumeTextArea.value
+    });
+
+    // Получить релевантность
+    const relevancy = await getRelevancy(vacancy.id, resume.id);
+
+    // Обновить прогресс бар до 100% и показать результаты
+    showProgress(100);
+
+    const progressBar = document.getElementById("progressBar");
+    progressBar.style.width = "0";
+
+    // Скрываем progressModal и показываем результаты
+    progressModal.style.display = "none";
+    showResults(relevancy);
+  } catch (error) {
+    console.error('There was an error processing your request', error);
+    progressModal.style.display = "none";
+  }
+}
+    let progressInterval; // Глобальная переменная для интервала
+
+    function showProgress(target) {
+        const progressBar = document.getElementById("progressBar");
+  const progressText = document.getElementById("progressText");
+  let currentProgress = parseFloat(progressBar.style.width) || 0;
+  const intervalTime = 50; // Время между обновлениями
+  const totalDuration = 20000; // 5 секунд
+  const step = (95 - currentProgress) / (totalDuration / intervalTime);
+
+  // Очищаем предыдущий интервал, если он был установлен
+  clearInterval(progressInterval);
+
+  progressInterval = setInterval(() => {
+    if (currentProgress < target) {
+      currentProgress += step;
+      if (currentProgress > 95) {
+        currentProgress = 95; // Останавливаем на 95%
+        clearInterval(progressInterval);
+      }
+      progressBar.style.width = `${currentProgress}%`;
+      progressText.textContent = `${Math.round(currentProgress)}%`;
+    }
+  }, intervalTime);
+}
+
+
+function showResults(relevancy) {
+  // Обновляем текстовые поля в модальном окне
+  document.getElementById("matchScore").textContent = parseInt(relevancy.score * 100) + "%";
+  fillList('strengths', relevancy.strengths);
+  fillList('weaknesses', relevancy.weaknesses);
+  fillList('rewrite_suggestions', relevancy.rewrite_suggestions);
+  fillList('learning_recommendations', relevancy.learning_recommendations);
+  fillList('reflection_points', relevancy.reflection_points);
+  document.getElementById('upgrades').textContent = relevancy.upgrades;
+
+  // Показываем модальное окно
+  var resultModal = document.getElementById("resultModal");
+  resultModal.style.display = "flex";
+}
+
+function fillList(id, items) {
+  const list = document.getElementById(id);
+  list.innerHTML = ''; // Очистить текущий список
+    if(items.length === 0) {
+        list.parentElement.style.display = "none"
+    }
+
+        list.parentElement.style.display = "block"
+  items.forEach(item => {
+    const listItem = document.createElement('li');
+    listItem.textContent = item;
+    list.appendChild(listItem);
+  });
+}
+
+function closeModal(event) {
+  // Проверяем, что клик был сделан именно по фону, а не по содержимому модального окна
+  if (event.target.classList.contains('modal')) {
+    event.target.style.display = 'none';
+  }
+}
+
+function closeResults() {
+  var resultModal = document.getElementById("resultModal");
+  resultModal.style.display = "none";
+}
+
+let savedVacancyText = ""; // Переменная для хранения текста вакансии
+let savedResumeText = ""; // Переменная для хранения текста резюме
+
+// Функция для обновления текста при изменениях
+function saveText() {
+  const vacancyText = document.getElementById("vacancy-text").value;
+  const resumeText = document.getElementById("resume-text").value;
+
+  localStorage.setItem("savedVacancyText", vacancyText);
+  localStorage.setItem("savedResumeText", resumeText);
+}
+
+function loadText() {
+  const vacancyText = localStorage.getItem("savedVacancyText");
+  const resumeText = localStorage.getItem("savedResumeText");
+
+  if (vacancyText !== null) {
+    document.getElementById("vacancy-text").value = vacancyText;
+  }
+
+  if (resumeText !== null) {
+    document.getElementById("resume-text").value = resumeText;
+  }
+}
+
+// Загрузка текста при загрузке страницы
+window.onload = function() {
+  loadText();
+};
+
+// Добавляем обработчики событий для сохранения текста при изменении
+document.getElementById("vacancy-text").addEventListener("input", saveText);
+document.getElementById("resume-text").addEventListener("input", saveText);
+
+</script>
+</body>
+</html>

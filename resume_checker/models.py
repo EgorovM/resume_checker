@@ -1,0 +1,11 @@
+from django.db import models
+
+
+class Vacancy(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+
+
+class Resume(models.Model):
+    name = models.CharField(max_length=100)
+    content = models.TextField()
