@@ -120,7 +120,7 @@ USE_TZ = True
 
 # Application variables
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-
+CROSS_ENCODER_PATH = BASE_DIR / "models/bert_cross_encoder_100_10_full"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/

@@ -17,6 +17,8 @@
 - pip (Python Package Installer)
 - Docker (для Docker-сборки)
 - Заданный OPENAI_API_KEY
+- Скачанные веса cross-encoder: https://drive.google.com/drive/folders/1FewCy8PhZisQtex84kPy07qlvlEhnxnT?usp=sharing
+
 
 ### Установка и запуск
 Чтобы запустить проект локально, выполните следующие шаги:
@@ -38,7 +40,8 @@ venv\Scripts\activate # Для Windows
 
 
 4. **Запуск проекта:**
-`python manage.py runserver`
+`python manage.py migrate`
+`python manage.py runserver 0.0.0.0:8000`
 
 ### Использование Docker
 
@@ -51,3 +54,16 @@ venv\Scripts\activate # Для Windows
 ## Использование
 
 После запуска проекта, приложение будет доступно по адресу `http://localhost:8000`.
+
+
+## Исследования:
+Можно посмотреть здесь:
+https://colab.research.google.com/drive/15eDZQ5ueD6xIE7Wmp2U_Ob-GFNiWFtkg?usp=sharing
+
+### Целевые метрики:
+Нужно иметь в виду, что датасет не репрезентативен. Но модель со своей ролью справляется - релевантные резюме и вакансии близко к дург другу. Не релевантные - далеко.
+
+- accuracy: 0.99
+- f1_score: 0.99
+- recall_score: 1
+- precision_score: 0.99

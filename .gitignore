@@ -1,3 +1,5 @@
 .env
 .idea/
 __pycache__/
+models/bert_cross_encoder_100_10_full
+.DS_Store
